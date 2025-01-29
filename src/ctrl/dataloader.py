@@ -6,23 +6,22 @@ class DataLoader:
 
     def __init__(self):
         self.ie_df = None
-        self.ie2_df = None
+        self.ie2_df = self.ie2_data_loader()
         self.ie3_df = None
+
 
     def ie_data_loader(self):
         pass #TBD
 
     def ie2_data_loader(self):
 
-        url = "http://watashiwa7.altervista.org/ie/2/stats_ie2.htm"
-
-        response = requests.get(url)
+        response = requests.get("http://watashiwa7.altervista.org/ie/2/stats_ie2.htm")
         html_text = response.text
 
         soup = BeautifulSoup(html_text, "html.parser")
         h1_tags = soup.find_all("h1")
 
-        dataframes = pd.read_html(html_text)
+        dataframes = pd.read_html("http://watashiwa7.altervista.org/ie/2/stats_ie2.htm")
 
         dataframes = dataframes[1:]  # First Table is not useful
 
@@ -37,12 +36,17 @@ class DataLoader:
 
         df = pd.concat(dataframes, ignore_index=True)
 
-        df["Recr."].fillna("NS(Non Scouteable)", inplace=True)
+        df["Recr."] = df["Recr."].fillna("Recruit")
+        df.rename(columns={"Recr.": "Method"}, inplace=True)
+        df.drop(columns="Freedom", inplace=True)
+        df.dropna(thresh=9, inplace=True)
+        df.loc[1220:1364, "Method"] = "?"
 
         for col in df.columns:
             if col in ["FP", "TP", "Kick", "Body", "Control", "Guard", "Speed", "Stamina", "Guts", "Freedom"]:
                 df[col] = df[col].astype(float)
-        self.ie2_df = df
+
+        return df
 
     def ie3_data_loader(self):
         pass #TBD
